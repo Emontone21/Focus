@@ -7,7 +7,10 @@
       "Bash(npm run *)",
       "Bash(npx cap *)",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git -c user.email=\"local@focusflow\" -c user.name=\"FocusFlow\" commit -m \"Initial FocusFlow scaffold: Vite+React+TS, Dexie, Zustand, Capacitor iOS, Tailwind, PWA, CI\")",
+      "Bash(git rm *)",
+      "Bash(git -c user.email=\"local@focusflow\" -c user.name=\"FocusFlow\" commit -am \"chore: ignore *.tsbuildinfo\")"
     ]
   }
 }
