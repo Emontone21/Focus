@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+html, body, #root {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #efeff4;
+  color: #0a0a0a;
+}
+
+body.dark {
+  background: #000;
+  color: #f5f5f7;
+}
+
+/* Hide scrollbars on inner scroll containers but keep functionality */
+.scroll-y { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.scroll-y::-webkit-scrollbar { width: 0; height: 0; }
+
+/* iOS-like tap highlight off */
+* { -webkit-tap-highlight-color: transparent; }
+
+textarea, input, select { font: inherit; }
+
+.ios-input {
+  width: 100%;
+  background: #f2f2f7;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(198,198,200,0.6);
+  font-size: 15px;
+  outline: none;
+}
+.dark .ios-input { background: rgba(28,28,30,0.6); border-color: rgba(56,56,58,0.8); color: #f5f5f7; }
+.ios-input:focus { border-color: #0a84ff; }
+
+.dragging { opacity: 0.6; transform: scale(1.02); }
+.drop-target { outline: 2px dashed #0a84ff; outline-offset: -4px; border-radius: 12px; }
+.drop-blocked { outline: 2px dashed #ff3b30; outline-offset: -4px; border-radius: 12px; }
+
+/* Markdown rendering */
+.md p { margin: 0 0 .6em; }
+.md h1 { font-size: 1.4em; font-weight: 700; margin: .6em 0 .3em; }
+.md h2 { font-size: 1.2em; font-weight: 700; margin: .6em 0 .3em; }
+.md h3 { font-size: 1.05em; font-weight: 700; margin: .6em 0 .3em; }
+.md ul { padding-left: 1.2em; list-style: disc; margin: .3em 0; }
+.md ol { padding-left: 1.2em; list-style: decimal; margin: .3em 0; }
+.md code { background: rgba(0,0,0,0.06); padding: 1px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
+.dark .md code { background: rgba(255,255,255,0.1); }
+.md a { color: #0a84ff; text-decoration: underline; }
+.md .wikilink { color: #0a84ff; cursor: pointer; text-decoration: none; border-bottom: 1px dotted #0a84ff; }
+.md .wikilink.missing { color: #8e8e93; border-color: #8e8e93; }

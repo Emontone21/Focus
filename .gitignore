@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Vite cache
+.vite/
+.cache/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env
+.env
+.env.local
+
+# iOS native build artefacts (the Xcode project itself IS committed)
+ios/App/build/
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/App/App/public/
+ios/DerivedData/
+ios/App/output/
+*.xcuserstate
+xcuserdata/

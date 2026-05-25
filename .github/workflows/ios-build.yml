@@ -1,0 +1,108 @@
+name: Build unsigned iOS .ipa (for AltStore)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  release:
+    types: [published]
+
+# Single in-flight build per ref keeps Actions minutes sane.
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Node 20 is the current LTS that Vite + Capacitor 6 both target.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm deps
+        run: npm ci
+
+      # Build the web bundle that Capacitor will copy into the iOS app.
+      # Inside the WebView assets must be referenced with relative paths.
+      - name: Build web (Vite)
+        run: npm run build
+        env:
+          VITE_BASE: './'
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      # macos-latest ships Ruby + CocoaPods, but pin to a known good version
+      # to avoid surprises if the runner image changes.
+      - name: Setup CocoaPods
+        run: |
+          gem install cocoapods --no-document || sudo gem install cocoapods --no-document
+          pod --version
+
+      - name: pod install
+        working-directory: ios/App
+        run: pod install --repo-update
+
+      # The unsigned .ipa is just the .app dropped into a Payload/ folder
+      # and zipped. AltStore signs it locally on install using the user's
+      # free Apple ID, so we deliberately disable code signing here.
+      #
+      # NOTE: If a future Xcode version on the runner refuses
+      # CODE_SIGNING_ALLOWED=NO, try setting DEVELOPMENT_TEAM="" or
+      # leaving the flag off and accepting the "no provisioning profile"
+      # warning — xcodebuild still produces the .app.
+      - name: xcodebuild archive (unsigned)
+        working-directory: ios/App
+        run: |
+          set -euxo pipefail
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Package Payload/ → FocusFlow.ipa
+        working-directory: ios/App
+        run: |
+          set -euxo pipefail
+          APP_PATH="build/Build/Products/Release-iphoneos/App.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::App.app not found at $APP_PATH"
+            find build -name "*.app" -maxdepth 6 || true
+            exit 1
+          fi
+          mkdir -p build/Payload
+          cp -R "$APP_PATH" build/Payload/
+          (cd build && zip -qr FocusFlow.ipa Payload)
+          ls -lh build/FocusFlow.ipa
+
+      - name: Upload .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FocusFlow-ipa
+          path: ios/App/build/FocusFlow.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      # If this run was triggered by a tag-published release, attach the .ipa.
+      - name: Attach .ipa to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ios/App/build/FocusFlow.ipa
