@@ -13,12 +13,8 @@ const QUADS: { key: string; q: Quad; title: string; tone: string; hint: string }
 ];
 
 export function EisenhowerMatrix() {
-  const tasks = useLiveQuery(() => db.tasks.where('archived').equals(0 as never).toArray(), []) || [];
-  // (boolean index workaround — fetch all then filter)
   const all = useLiveQuery(() => db.tasks.toArray(), []) || [];
   const filtered = all.filter((t) => !t.archived && t.kanban !== 'done');
-  // unused
-  void tasks;
 
   return (
     <div className="grid grid-cols-2 gap-2">
