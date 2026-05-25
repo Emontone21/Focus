@@ -15,6 +15,7 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+.claude/
 *.swp
 Thumbs.db
 
