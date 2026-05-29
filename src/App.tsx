@@ -9,6 +9,7 @@ import { OrganizePage } from '@/pages/OrganizePage';
 import { BoardPage } from '@/pages/BoardPage';
 import { TodayPage } from '@/pages/TodayPage';
 import { NotesPage } from '@/pages/NotesPage';
+import { MapPage } from '@/pages/MapPage';
 import { useUI } from '@/store/useUI';
 import { useSettings } from '@/store/useSettings';
 
@@ -36,6 +37,7 @@ export default function App() {
           {tab === 'board' && <BoardPage />}
           {tab === 'today' && <TodayPage />}
           {tab === 'notes' && <NotesPage />}
+          {tab === 'map' && <MapPage />}
         </div>
         <FAB />
         <TabBar />

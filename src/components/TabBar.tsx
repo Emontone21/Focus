@@ -1,4 +1,4 @@
-import { Inbox, FolderKanban, KanbanSquare, NotebookText, Sun } from 'lucide-react';
+import { Inbox, FolderKanban, KanbanSquare, NotebookText, Sun, Network } from 'lucide-react';
 import { useUI, type TabKey } from '@/store/useUI';
 
 const tabs: { key: TabKey; label: string; icon: React.ElementType }[] = [
@@ -7,6 +7,7 @@ const tabs: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: 'board', label: 'Tablero', icon: KanbanSquare },
   { key: 'notes', label: 'Notas', icon: NotebookText },
   { key: 'today', label: 'Hoy', icon: Sun },
+  { key: 'map', label: 'Mapa', icon: Network },
 ];
 
 export function TabBar() {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type TabKey = 'inbox' | 'organize' | 'board' | 'notes' | 'today';
+export type TabKey = 'inbox' | 'organize' | 'board' | 'notes' | 'today' | 'map';
 
 type Toast = { id: number; text: string; kind: 'info' | 'warn' | 'error' };
 

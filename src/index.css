@@ -64,3 +64,15 @@ textarea, input, select { font: inherit; }
 .md a { color: #0a84ff; text-decoration: underline; }
 .md .wikilink { color: #0a84ff; cursor: pointer; text-decoration: none; border-bottom: 1px dotted #0a84ff; }
 .md .wikilink.missing { color: #8e8e93; border-color: #8e8e93; }
+
+:root {
+  --graph-bg: #f4f4f7;
+  --graph-edge: #8e8e93;
+  --graph-label: #3c3c43;
+}
+body.dark {
+  --graph-bg: #0a0a0e;
+  --graph-edge: #6e6e73;
+  --graph-label: #c7c7cc;
+}
+.bg-graph { background: var(--graph-bg); }
