@@ -1,6 +1,7 @@
 import { Header } from '@/components/Header';
 import { DayPlanner } from '@/features/today/DayPlanner';
 import { PomodoroTimer } from '@/features/today/PomodoroTimer';
+import { WeekHistory } from '@/features/today/WeekHistory';
 
 export function TodayPage() {
   return (
@@ -9,6 +10,7 @@ export function TodayPage() {
       <div className="flex-1 scroll-y px-4 py-3 space-y-3">
         <PomodoroTimer />
         <DayPlanner />
+        <WeekHistory />
       </div>
     </div>
   );

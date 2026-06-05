@@ -29,3 +29,24 @@ export const hmToMinutes = (hm: string): number => {
   const [h, m] = hm.split(':').map((n) => parseInt(n, 10));
   return (h || 0) * 60 + (m || 0);
 };
+
+// Monday 00:00 of the week containing `d` (local time).
+export const startOfWeek = (d: Date = new Date()): Date => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  const dow = (x.getDay() + 6) % 7; // Mon=0 … Sun=6
+  x.setDate(x.getDate() - dow);
+  return x;
+};
+
+// Human duration from minutes: "2 h 15 min", "45 min", "0 min".
+export const formatDuration = (mins: number): string => {
+  const m = Math.max(0, Math.round(mins));
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  if (h === 0) return `${r} min`;
+  if (r === 0) return `${h} h`;
+  return `${h} h ${r} min`;
+};
+
+export const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];

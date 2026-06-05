@@ -32,6 +32,9 @@ export type Resource = {
 
 export type KanbanColumn = 'todo' | 'doing' | 'done';
 
+// Recurrence: when a recurring task is completed it reactivates after the interval.
+export type RecurUnit = 'day' | 'week' | 'month';
+
 export type Task = {
   id?: number;
   projectId?: number;     // null/undefined => standalone task
@@ -47,8 +50,30 @@ export type Task = {
   scheduledFor?: string;  // ISO yyyy-mm-dd for the Day planner
   blockStart?: string;    // 'HH:MM' for time blocking
   blockEnd?: string;      // 'HH:MM'
+  recurUnit?: RecurUnit;  // undefined => not recurring
+  recurEvery?: number;    // interval count (default 1) — e.g. every 2 weeks
+  recurCount?: number;    // times this recurring task has been completed
+  completedAt?: number;   // epoch ms, set when a non-recurring task is completed
   createdAt: number;
   archived: boolean;
+};
+
+// One row per completed pomodoro work block — powers "horas dedicadas".
+export type Session = {
+  id?: number;
+  taskId?: number;
+  taskTitle?: string;
+  minutes: number;
+  completedAt: number;    // epoch ms
+};
+
+// One row per task completion (including each cycle of a recurring task).
+export type Completion = {
+  id?: number;
+  taskId?: number;
+  taskTitle: string;
+  completedAt: number;    // epoch ms
+  recurring: boolean;
 };
 
 export type Note = {
@@ -85,6 +110,8 @@ export class FocusFlowDB extends Dexie {
   notes!: Table<Note, number>;
   links!: Table<Link, number>;
   settings!: Table<Setting, string>;
+  sessions!: Table<Session, number>;
+  completions!: Table<Completion, number>;
 
   constructor() {
     super('focusflow');
@@ -97,6 +124,11 @@ export class FocusFlowDB extends Dexie {
       notes: '++id, title, updatedAt',
       links: '++id, fromId, toTitle',
       settings: 'key',
+    });
+    // v2: time tracking + completion history for the weekly review on "Hoy".
+    this.version(2).stores({
+      sessions: '++id, completedAt, taskId',
+      completions: '++id, completedAt, taskId',
     });
   }
 }

@@ -38,7 +38,7 @@ export const usePomodoro = create<State>((set, get) => ({
     if (remaining === 0) {
       // Phase finished → advance
       const settings = useSettings.getState();
-      const { phase, completedInRound, taskId } = get();
+      const { phase, completedInRound, taskId, taskTitle } = get();
       if (phase === 'work') {
         // increment task pomodoro count
         if (taskId !== null) {
@@ -46,6 +46,13 @@ export const usePomodoro = create<State>((set, get) => ({
             if (t) db.tasks.update(taskId, { pomodoros: (t.pomodoros || 0) + 1 });
           });
         }
+        // log the focused time so "Hoy" can show hours dedicated this week
+        db.sessions.add({
+          taskId: taskId ?? undefined,
+          taskTitle: taskTitle ?? undefined,
+          minutes: settings.pomodoroWork,
+          completedAt: Date.now(),
+        });
         const next = completedInRound + 1;
         const goingLong = next % 4 === 0;
         const mins = goingLong ? settings.pomodoroLongBreak : settings.pomodoroBreak;

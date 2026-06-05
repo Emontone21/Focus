@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Task } from '@/db/schema';
+import { db, type RecurUnit, type Task } from '@/db/schema';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { useUI } from '@/store/useUI';
@@ -86,6 +86,8 @@ export function TaskEditor({
   const [important, setImportant] = useState(false);
   const [dueDate, setDueDate] = useState('');
   const [intention, setIntention] = useState('');
+  const [recurUnit, setRecurUnit] = useState<'' | RecurUnit>('');
+  const [recurEvery, setRecurEvery] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +95,7 @@ export function TaskEditor({
       if (taskId === null) return;
       if (taskId === 'new') {
         setTitle(''); setNote(''); setUrgent(false); setImportant(false); setDueDate(''); setIntention('');
+        setRecurUnit(''); setRecurEvery(1);
         return;
       }
       const t = await db.tasks.get(taskId);
@@ -103,18 +106,25 @@ export function TaskEditor({
       setImportant(t.important);
       setDueDate(t.dueDate || '');
       setIntention(t.intention || '');
+      setRecurUnit(t.recurUnit || '');
+      setRecurEvery(t.recurEvery && t.recurEvery > 0 ? t.recurEvery : 1);
     })();
     return () => { cancelled = true; };
   }, [taskId]);
 
   const save = async () => {
     if (!title.trim()) { toast('Título obligatorio', 'warn'); return; }
+    const recur = {
+      recurUnit: recurUnit || undefined,
+      recurEvery: recurUnit ? Math.max(1, recurEvery) : undefined,
+    };
     if (taskId === 'new') {
       await db.tasks.add({
         title, note: note || undefined,
         urgent, important,
         dueDate: dueDate || undefined,
         intention: intention || undefined,
+        ...recur,
         projectId,
         kanban: 'todo',
         pomodoros: 0,
@@ -125,6 +135,7 @@ export function TaskEditor({
       await db.tasks.update(taskId, {
         title, note: note || undefined, urgent, important,
         dueDate: dueDate || undefined, intention: intention || undefined,
+        ...recur,
       });
     }
     toast('Tarea guardada');
@@ -148,6 +159,34 @@ export function TaskEditor({
           <ToggleRow label="Importante" value={important} onChange={setImportant} />
         </div>
         <Field label="Fecha"><input type="date" className="ios-input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></Field>
+        <Field label="Repetir (al completarla, se reactiva sola)">
+          <div className="flex gap-2 items-center">
+            <select
+              className="ios-input flex-1"
+              value={recurUnit}
+              onChange={(e) => setRecurUnit(e.target.value as '' | RecurUnit)}
+            >
+              <option value="">No se repite</option>
+              <option value="day">Diaria</option>
+              <option value="week">Semanal</option>
+              <option value="month">Mensual</option>
+            </select>
+            {recurUnit && (
+              <label className="flex items-center gap-1 text-xs text-ios-muted shrink-0">
+                cada
+                <input
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={recurEvery}
+                  onChange={(e) => setRecurEvery(Math.max(1, Math.min(52, Number(e.target.value) || 1)))}
+                  className="ios-input w-16"
+                />
+                {recurUnit === 'day' ? 'día(s)' : recurUnit === 'week' ? 'sem.' : 'mes(es)'}
+              </label>
+            )}
+          </div>
+        </Field>
         <Field label="Intención de implementación (cuándo/dónde/cómo)">
           <textarea
             className="ios-input min-h-[60px]"

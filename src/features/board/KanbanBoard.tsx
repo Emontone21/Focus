@@ -5,7 +5,9 @@ import { useSettings } from '@/store/useSettings';
 import { useUI } from '@/store/useUI';
 import { useDraggable, useDropZone } from '@/lib/dnd';
 import { TaskEditor } from '@/features/organize/ProjectDetail';
-import { Settings2 } from 'lucide-react';
+import { completeTask, recurLabel } from '@/lib/recurrence';
+import { formatHuman } from '@/lib/time';
+import { Repeat, Settings2 } from 'lucide-react';
 
 const COLS: { key: KanbanColumn; title: string; hint?: string }[] = [
   { key: 'todo',  title: 'Por hacer' },
@@ -58,6 +60,7 @@ export function KanbanBoard() {
                 wipLimit={c.key === 'doing' ? wipLimit : undefined}
                 onPickTask={(id) => setEditingTask(id)}
                 onBlocked={(reason) => toast(reason, 'warn')}
+                onInfo={(msg) => toast(msg)}
               />
             );
           })}
@@ -70,7 +73,7 @@ export function KanbanBoard() {
 }
 
 function Column({
-  col, title, items, wipLimit, onPickTask, onBlocked,
+  col, title, items, wipLimit, onPickTask, onBlocked, onInfo,
 }: {
   col: KanbanColumn;
   title: string;
@@ -78,6 +81,7 @@ function Column({
   wipLimit?: number;
   onPickTask: (id: number) => void;
   onBlocked: (reason: string) => void;
+  onInfo: (msg: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useDropZone(ref, {
@@ -104,6 +108,14 @@ function Column({
           onBlocked(`Límite WIP alcanzado (${wipLimit}).`);
           return;
         }
+      }
+      // Completing a task: log it, and reactivate it if it's recurring.
+      if (col === 'done' && t.kanban !== 'done') {
+        const { recurred, nextDue } = await completeTask(id);
+        if (recurred) {
+          onInfo(`"${t.title}" se reprograma para ${formatHuman(nextDue)}`);
+        }
+        return;
       }
       await db.tasks.update(id, { kanban: col });
     },
@@ -148,6 +160,12 @@ function KanbanCard({ task, onClick }: { task: Task; onClick: () => void }) {
       <div className="flex items-center gap-1 mt-1 flex-wrap">
         {task.urgent && <Pill tone="danger">Urgente</Pill>}
         {task.important && <Pill tone="accent">Importante</Pill>}
+        {task.recurUnit && (
+          <Pill tone="accent">
+            <Repeat size={9} className="inline -mt-0.5 mr-0.5" />
+            {recurLabel(task.recurUnit, task.recurEvery)}
+          </Pill>
+        )}
         {task.pomodoros > 0 && <Pill tone="muted">{task.pomodoros} 🍅</Pill>}
         {task.dueDate && <Pill tone="muted">{task.dueDate}</Pill>}
       </div>
