@@ -1,9 +1,28 @@
-export const todayISO = (): string => {
-  const d = new Date();
+// Local-date → ISO yyyy-mm-dd (no timezone shift, unlike toISOString()).
+export const toISO = (d: Date): string => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
+};
+
+export const todayISO = (): string => toISO(new Date());
+
+// Shift an ISO date by `n` days (n can be negative). Returns a new ISO date.
+export const addDaysISO = (iso: string, n: number): string => {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return toISO(d);
+};
+
+// The 7 ISO dates (Mon → Sun) of the week containing `iso`.
+export const weekDaysISO = (iso: string): string[] => {
+  const monday = startOfWeek(new Date(iso + 'T00:00:00'));
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    return toISO(d);
+  });
 };
 
 export const formatHuman = (iso?: string): string => {

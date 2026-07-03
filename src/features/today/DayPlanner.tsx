@@ -9,21 +9,30 @@ import { usePomodoro } from '@/store/usePomodoro';
 
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 07:00 → 20:00
 
-export function DayPlanner() {
-  const today = todayISO();
+export function DayPlanner({ date }: { date?: string }) {
+  const day = date ?? todayISO();
+  const isToday = day === todayISO();
   const all = useLiveQuery(() => db.tasks.toArray(), []) || [];
   const scheduled = all
-    .filter((t) => t.scheduledFor === today && !t.archived)
+    .filter((t) => t.scheduledFor === day && !t.archived)
     .sort((a, b) => hmToMinutes(a.blockStart || '00:00') - hmToMinutes(b.blockStart || '00:00'));
-  const pool = all.filter((t) => !t.archived && t.kanban !== 'done' && t.scheduledFor !== today);
+  const pool = all.filter((t) => !t.archived && t.kanban !== 'done' && t.scheduledFor !== day);
 
   const [picking, setPicking] = useState(false);
+
+  const heading = isToday
+    ? 'Agenda de hoy'
+    : `Agenda · ${new Date(day + 'T00:00:00').toLocaleDateString('es-UY', {
+        weekday: 'long',
+        day: '2-digit',
+        month: '2-digit',
+      })}`;
 
   return (
     <div className="space-y-3">
       <div className="rounded-2xl bg-ios-card dark:bg-ios-cardDark border border-ios-sep/30 dark:border-ios-sepDark p-3">
         <div className="flex items-center justify-between mb-2">
-          <div className="text-xs font-semibold text-ios-muted uppercase">Agenda de hoy</div>
+          <div className="text-xs font-semibold text-ios-muted uppercase capitalize">{heading}</div>
           <button
             onClick={() => setPicking(true)}
             className="text-xs font-semibold text-ios-accent flex items-center gap-1"
@@ -53,7 +62,7 @@ export function DayPlanner() {
         </div>
       </div>
 
-      <PickSheet open={picking} onClose={() => setPicking(false)} pool={pool} today={today} />
+      <PickSheet open={picking} onClose={() => setPicking(false)} pool={pool} day={day} />
     </div>
   );
 }
@@ -77,8 +86,8 @@ function BlockChip({ task }: { task: Task }) {
 }
 
 function PickSheet({
-  open, onClose, pool, today,
-}: { open: boolean; onClose: () => void; pool: Task[]; today: string }) {
+  open, onClose, pool, day,
+}: { open: boolean; onClose: () => void; pool: Task[]; day: string }) {
   const [taskId, setTaskId] = useState<number | ''>('');
   const [start, setStart] = useState('09:00');
   const [end, setEnd] = useState('09:30');
@@ -89,7 +98,7 @@ function PickSheet({
   const assign = async () => {
     if (!taskId) { toast('Elegí una tarea', 'warn'); return; }
     if (hmToMinutes(end) <= hmToMinutes(start)) { toast('La hora de fin debe ser posterior', 'warn'); return; }
-    await db.tasks.update(Number(taskId), { scheduledFor: today, blockStart: start, blockEnd: end });
+    await db.tasks.update(Number(taskId), { scheduledFor: day, blockStart: start, blockEnd: end });
     toast('Bloque agendado');
     onClose();
   };
